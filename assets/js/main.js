@@ -47,6 +47,164 @@
     });
   }
 
+  /* ---------- Hero: falling petals ---------- */
+
+  var petals = (function (canvas) {
+    if (!canvas || reduceMotion || !canvas.getContext) return null;
+    var ctx = canvas.getContext("2d");
+    var stage = canvas.parentElement;
+    var COLORS = [["#f7c9d4", "#e99ab0"], ["#fbdbe3", "#f0b3c3"], ["#f4b8c8", "#d97f9a"], ["#fde8ee", "#f3c2cf"]];
+    var W = 0, H = 0, dpr = 1, list = [], sparks = [], running = false, last = 0;
+    var mouse = { x: -999, y: -999 };
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function petal(x, y, burst) {
+      return {
+        x: x, y: y, s: rand(7, 15), vx: burst ? rand(-2.6, 2.6) : rand(-0.3, 0.3), vy: burst ? rand(-5.5, -2.5) : rand(0.35, 0.9),
+        r: rand(0, 6.28), vr: rand(-0.02, 0.02), f: rand(0, 6.28), vf: rand(0.02, 0.05), c: COLORS[(Math.random() * COLORS.length) | 0], burst: burst
+      };
+    }
+    function resize() {
+      var r = stage.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = W < 700 ? 16 : 30;
+      while (list.length < n) list.push(petal(rand(0, W), rand(-H, H), false));
+      sparks = [];
+      for (var i = 0; i < (W < 700 ? 10 : 22); i++) sparks.push({ x: rand(0, W), y: rand(0, H), p: rand(0, 6.28), s: rand(1, 2.4) });
+    }
+    function drawPetal(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.r);
+      ctx.scale(Math.cos(p.f) * 0.8 + 0.2, 1);
+      var s = p.s;
+      var g = ctx.createLinearGradient(0, -s, 0, s);
+      g.addColorStop(0, p.c[0]); g.addColorStop(1, p.c[1]);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(0, -s);
+      ctx.bezierCurveTo(s * 0.95, -s * 0.7, s * 0.75, s * 0.75, 0, s);
+      ctx.bezierCurveTo(-s * 0.75, s * 0.75, -s * 0.95, -s * 0.7, 0, -s);
+      ctx.fill();
+      ctx.restore();
+    }
+    function frame(t) {
+      if (!running) return;
+      var dt = Math.min(2, last ? (t - last) / 16.7 : 1); last = t;
+      ctx.clearRect(0, 0, W, H);
+      for (var k = 0; k < sparks.length; k++) {
+        var sp = sparks[k]; sp.p += 0.03 * dt;
+        ctx.globalAlpha = (Math.sin(sp.p) + 1) * 0.35;
+        ctx.fillStyle = "#d9b77c";
+        ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.s, 0, 6.28); ctx.fill();
+      }
+      ctx.globalAlpha = 0.9;
+      for (var i = list.length - 1; i >= 0; i--) {
+        var p = list[i];
+        var dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+        if (d2 < 14400) { var d = Math.sqrt(d2) || 1; p.vx += (dx / d) * 0.35; p.vy += (dy / d) * 0.2; }
+        if (p.burst) { p.vy += 0.09 * dt; p.vx *= 0.985; if (p.vy > 1.1) p.burst = false; }
+        else { p.vx += (Math.sin(p.f * 0.5) * 0.012 - p.vx * 0.02) * dt; p.vy += (0.6 - p.vy) * 0.02 * dt; }
+        p.x += (p.vx + Math.sin(p.f) * 0.25) * dt; p.y += p.vy * dt;
+        p.r += p.vr * dt; p.f += p.vf * dt;
+        drawPetal(p);
+        if (p.y > H + 30 || p.x < -40 || p.x > W + 40) {
+          if (list.length > (W < 700 ? 16 : 30)) list.splice(i, 1);
+          else { list[i] = petal(rand(0, W), -20, false); }
+        }
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(frame);
+    }
+    function start() { if (running) return; running = true; last = 0; requestAnimationFrame(frame); }
+    function stop() { running = false; }
+
+    resize();
+    window.addEventListener("resize", resize);
+    stage.addEventListener("pointermove", function (e) {
+      var r = stage.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+    });
+    stage.addEventListener("pointerleave", function () { mouse.x = mouse.y = -999; });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (en) { if (en[0].isIntersecting && !document.hidden) start(); else stop(); }).observe(stage);
+    } else start();
+    document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else start(); });
+
+    return {
+      burst: function (x, y) { for (var i = 0; i < 28; i++) list.push(petal(x + rand(-40, 40), y + rand(-10, 10), true)); start(); }
+    };
+  })(document.querySelector("[data-petals]"));
+
+  /* ---------- Hero: unwrap the box on scroll ---------- */
+
+  var unbox = document.querySelector("[data-unbox]");
+  var scene = document.querySelector("[data-scene]");
+  if (unbox && scene) {
+    var openBtn = scene.querySelector("[data-open-box]");
+    if (reduceMotion || !window.gsap || !window.ScrollTrigger) {
+      // Static open box: no pinning, no scrubbing.
+      doc.classList.add("no-pin", "unbox-ready");
+      openBtn.setAttribute("aria-label", "See the gift boxes");
+      openBtn.addEventListener("click", function () { document.querySelector("#boxes").scrollIntoView(); });
+    } else {
+      gsap.registerPlugin(ScrollTrigger);
+      var u = function (n) { return scene.querySelector('[data-u="' + n + '"]'); };
+      var burst = false;
+      var tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: unbox, start: "top top", end: "bottom bottom", scrub: 0.9,
+          onUpdate: function (self) {
+            scene.classList.toggle("is-closed", self.progress < 0.02);
+            if (self.progress > 0.22 && !burst && petals) {
+              burst = true;
+              var sr = scene.getBoundingClientRect(), pr = unbox.firstElementChild.getBoundingClientRect();
+              petals.burst(sr.left - pr.left + sr.width / 2, sr.top - pr.top + sr.height * 0.55);
+            }
+            if (self.progress < 0.05) burst = false;
+            openBtn.setAttribute("aria-label", self.progress > 0.9 ? "See the gift boxes" : "Open the gift box");
+          }
+        }
+      });
+      tl.fromTo(u("lid"), { x: 0, y: 0, xPercent: 0, yPercent: 0, rotation: 0, scale: 1 },
+                          { yPercent: -24, rotation: 4, duration: 0.12, ease: "power1.out" }, 0)
+        .to(u("lid"), { xPercent: -44, yPercent: -59, rotation: -18, scale: 0.6, duration: 0.3, ease: "power2.inOut" }, 0.12)
+        .fromTo(u("glow"), { opacity: 0, scale: 0.55 }, { opacity: 0.95, scale: 1, duration: 0.34, ease: "power1.out" }, 0.06)
+        .fromTo(u("robe"), { x: 0, y: 0, yPercent: 92, rotation: -2 }, { yPercent: 0, rotation: 0, duration: 0.42, ease: "power2.out" }, 0.18)
+        .fromTo(u("flute"), { x: 0, y: 0, xPercent: -150, yPercent: 105, rotation: 0 }, { xPercent: 0, yPercent: 0, rotation: 14, duration: 0.38, ease: "power2.out" }, 0.3)
+        .fromTo(u("slippers"), { x: 0, y: 0, xPercent: 45, yPercent: 95, rotation: 0 }, { xPercent: 0, yPercent: 0, rotation: -6, duration: 0.38, ease: "power2.out" }, 0.36)
+        .fromTo(u("peonies"), { scale: 0.88, rotation: -5, transformOrigin: "80% 100%" }, { scale: 1, rotation: 0, duration: 0.6 }, 0)
+        .fromTo(scene.querySelector("[data-hint]"), { opacity: 1 }, { opacity: 0, duration: 0.08 }, 0)
+        .to({}, { duration: 0.18 }, 0.82);
+      doc.classList.add("unbox-ready");
+      scene.classList.add("is-closed");
+
+      openBtn.addEventListener("click", function () {
+        var st = tl.scrollTrigger;
+        if (st.progress > 0.9) { document.querySelector("#boxes").scrollIntoView({ behavior: "smooth" }); return; }
+        window.scrollTo({ top: st.end - 2, behavior: "smooth" });
+      });
+    }
+
+    // Gentle parallax that follows the pointer (mouse and pen only).
+    if (!reduceMotion && window.matchMedia("(pointer: fine)").matches) {
+      var stageEl = unbox.firstElementChild, raf = 0, nx = 0, ny = 0;
+      stageEl.addEventListener("pointermove", function (e) {
+        var r = stageEl.getBoundingClientRect();
+        nx = (e.clientX - r.left) / r.width - 0.5; ny = (e.clientY - r.top) / r.height - 0.5;
+        if (!raf) raf = requestAnimationFrame(function () {
+          raf = 0;
+          scene.style.setProperty("--px", (nx * -14).toFixed(1) + "px");
+          scene.style.setProperty("--py", (ny * -10).toFixed(1) + "px");
+        });
+      });
+      stageEl.addEventListener("pointerleave", function () { scene.style.setProperty("--px", "0px"); scene.style.setProperty("--py", "0px"); });
+    }
+  }
+
   // Scroll reveal, staggered within each parent.
   var reveals = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window && !reduceMotion) {

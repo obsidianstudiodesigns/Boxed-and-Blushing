@@ -34,13 +34,14 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
 
-  <link rel="preload" as="image" href="assets/img/hero-box.webp" imagesrcset="assets/img/hero-box-sm.webp 600w, assets/img/hero-box.webp 1024w" imagesizes="(max-width: 960px) 92vw, 44vw" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/unbox/lid.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/unbox/base.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css">
-  <link rel="stylesheet" href="assets/css/style.css?v=1">
+  <link rel="stylesheet" href="assets/css/style.css?v=2">
 
   <script type="application/ld+json">
   {
@@ -141,26 +142,36 @@
   </nav>
 
   <main id="main">
-    <section class="hero" id="top">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <p class="eyebrow">Made with love, just for you</p>
-          <h1>Thoughtful gifts, <em>beautifully boxed.</em></h1>
-          <p class="lead">Bridal party, birthday, matric dance and baby boxes, made in your colours with every name printed.</p>
-          <div class="hero-ctas">
-            <a class="btn btn-primary" href="#boxes">Browse the boxes <i class="ph ph-arrow-down-right" aria-hidden="true"></i></a>
-            <a class="btn btn-ghost" href="https://wa.me/27643953029?text=Hi%20Boxed%20and%20Blushing!%20I'd%20like%20to%20ask%20about%20a%20gift%20box." target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>Chat on WhatsApp</a>
+    <section class="hero unbox" id="top" data-unbox>
+      <div class="unbox-stage">
+        <span class="blob blob-a" aria-hidden="true"></span>
+        <span class="blob blob-b" aria-hidden="true"></span>
+        <span class="ring" aria-hidden="true"></span>
+        <canvas class="petals" data-petals aria-hidden="true"></canvas>
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Made with love, just for you</p>
+            <h1>Thoughtful gifts, <em>beautifully boxed.</em></h1>
+            <p class="lead">Bridal party, birthday, matric dance and baby boxes, made in your colours with every name printed.</p>
+            <div class="hero-ctas">
+              <a class="btn btn-primary" href="#boxes">Browse the boxes <i class="ph ph-arrow-down-right sm-hide" aria-hidden="true"></i></a>
+              <a class="btn btn-ghost" href="https://wa.me/27643953029?text=Hi%20Boxed%20and%20Blushing!%20I'd%20like%20to%20ask%20about%20a%20gift%20box." target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span><span class="sm-hide">Chat on </span>WhatsApp</span></a>
+            </div>
           </div>
-        </div>
-        <div class="hero-art">
-          <span class="hero-ornament" aria-hidden="true"></span>
-          <div class="hero-main">
-            <img src="assets/img/hero-box.webp" srcset="assets/img/hero-box-sm.webp 600w, assets/img/hero-box.webp 1024w" sizes="(max-width: 960px) 92vw, 44vw" width="1024" height="1024" alt="A blush pink bridesmaid gift box with a satin robe, fluffy slippers, a champagne flute and a scented candle">
+          <div class="unbox-scene" data-scene role="img" aria-label="A blush pink gift box opening to reveal a satin bridal robe, a champagne flute and fluffy slippers, with peonies beside it">
+            <div class="u u-glow" data-u="glow"></div>
+            <div class="u u-base" data-u="base"><img src="assets/img/unbox/base.webp" width="720" height="743" alt="" fetchpriority="high"></div>
+            <div class="u u-zone">
+              <div class="u u-robe" style="--d:.5" data-u="robe"><img src="assets/img/unbox/robe.webp" width="480" height="1040" alt=""></div>
+              <div class="u u-flute" style="--d:.9" data-u="flute"><img src="assets/img/unbox/flute.webp" width="220" height="855" alt=""></div>
+              <div class="u u-slippers" style="--d:1.2" data-u="slippers"><img src="assets/img/unbox/slippers.webp" width="560" height="393" alt=""></div>
+            </div>
+            <div class="u u-front" data-u="front"><img src="assets/img/unbox/base-front.webp" width="720" height="343" alt=""></div>
+            <div class="u u-peonies" data-u="peonies"><img src="assets/img/unbox/peonies.webp" width="620" height="422" alt=""></div>
+            <div class="u u-lid" data-u="lid"><img src="assets/img/unbox/lid.webp" width="850" height="635" alt="" fetchpriority="high"></div>
+            <button class="u-hit" type="button" data-open-box aria-label="Open the gift box"></button>
+            <p class="u-hint" data-hint aria-hidden="true"><i class="ph ph-hand-tap"></i>Scroll or tap to open</p>
           </div>
-          <div class="hero-card">
-            <img src="assets/img/gallery/bb-57-sm.webp" width="640" height="461" alt="A real Boxed and Blushing box for the bride, Megan, tied with white ribbon">
-          </div>
-          <img class="hero-seal" src="assets/img/logo-badge.webp" width="240" height="240" alt="">
         </div>
       </div>
     </section>
@@ -593,6 +604,8 @@
 
   <div class="toast" role="status" aria-live="polite" data-toast><i class="ph-fill ph-check-circle" aria-hidden="true"></i><span data-toast-text></span><a href="#order">View order</a></div>
 
-  <script src="assets/js/main.js?v=1" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="assets/js/main.js?v=2" defer></script>
 </body>
 </html>
